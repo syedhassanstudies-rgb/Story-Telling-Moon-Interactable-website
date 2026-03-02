@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#02020a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>LUNA — A Celestial Story</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Josefin+Sans:wght@100;200;300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Custom cursor -->
+  <div id="cdot"></div>
+  <div id="cring"></div>
+  <div id="mouse-flare"></div>
+
+  <!-- Overlays -->
+  <div id="grain"></div>
+  <div id="pbar"></div>
+  <div id="aurora"></div>
+  <div id="phase-label">New Moon</div>
+
+  <!-- Background canvases -->
+  <canvas id="star-cvs"></canvas>
+  <canvas id="neb-cvs"></canvas>
+  <canvas id="met-cvs"></canvas>
+
+  <!-- Header -->
+  <header id="site-header">
+    <a class="logo" href="#">Luna</a>
+    <nav id="desktop-nav">
+      <a href="#origin">Origin</a>
+      <a href="#mythology">Mythology</a>
+      <a href="#apollo">Apollo</a>
+      <a href="#forever">Epilogue</a>
+    </nav>
+    <button id="ham" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <!-- Mobile nav overlay -->
+  <div id="mob-nav" role="navigation" aria-label="Mobile navigation">
+    <a href="#origin"    class="mob-link">Origin</a>
+    <a href="#mythology" class="mob-link">Mythology</a>
+    <a href="#apollo"    class="mob-link">Apollo</a>
+    <a href="#forever"   class="mob-link">Epilogue</a>
+  </div>
+
+  <!-- Side nav dots -->
+  <div id="nav-dots" aria-hidden="true">
+    <div class="nd active" data-idx="0" data-label="Intro"></div>
+    <div class="nd"        data-idx="1" data-label="Origin"></div>
+    <div class="nd"        data-idx="2" data-label="Mythology"></div>
+    <div class="nd"        data-idx="3" data-label="Apollo"></div>
+    <div class="nd"        data-idx="4" data-label="Full Moon"></div>
+    <div class="nd"        data-idx="5" data-label="Epilogue"></div>
+  </div>
+
+  <!-- Fixed moon -->
+  <div id="moon-wrap" aria-hidden="true">
+    <div class="moon-halo-2"></div>
+    <div class="moon-halo"></div>
+    <div class="moon-ring-2"></div>
+    <div class="moon-ring"></div>
+    <div class="moon-sphere">
+      <div class="moon-photo"></div>
+      <canvas id="phase-cvs"></canvas>
+      <div class="moon-specular" id="mSpec"></div>
+      <div class="moon-rim"></div>
+    </div>
+  </div>
+
+  <!-- ═══ HERO ═══ -->
+  <section class="hero" data-s="0">
+    <p class="hero-prelude">A Celestial Story</p>
+    <h1 class="hero-title" id="heroTitle">LUNA</h1>
+    <p class="hero-sub" id="heroSub">She has watched over every dream ever dreamed.</p>
+    <div class="scroll-cue">
+      <span>Scroll to explore</span>
+      <div class="scroll-track"></div>
+    </div>
+  </section>
+
+  <!-- Marquee strip -->
+  <div class="marquee-strip" aria-hidden="true">
+    <div class="marquee-track">
+      <span class="marquee-item">Birth · 4.5 Billion Years Ago</span>
+      <span class="marquee-item">Distance · 384,400 km</span>
+      <span class="marquee-item">Selene · Artemis · Chang'e · Tsukuyomi</span>
+      <span class="marquee-item">Apollo 11 · July 20, 1969</span>
+      <span class="marquee-item">She Remains</span>
+      <span class="marquee-item">Birth · 4.5 Billion Years Ago</span>
+      <span class="marquee-item">Distance · 384,400 km</span>
+      <span class="marquee-item">Selene · Artemis · Chang'e · Tsukuyomi</span>
+      <span class="marquee-item">Apollo 11 · July 20, 1969</span>
+      <span class="marquee-item">She Remains</span>
+    </div>
+  </div>
+
+  <!-- ═══ ORIGIN ═══ -->
+  <section id="origin" data-s="1">
+    <div class="story-grid">
+      <div class="s-content">
+        <div class="ch-row rv">
+          <span class="ch-label">Chapter One</span>
+          <span class="ch-tag">4.5B Years</span>
+        </div>
+        <h2 class="s-title rv d1">Born from <em>catastrophe.</em></h2>
+        <p class="s-body rv d2">Four and a half billion years ago, a young Earth collided with a wandering protoplanet — a body the size of Mars — in a cataclysm that shook the solar system. Molten debris was flung into orbit.</p>
+        <p class="s-body rv d3">Gravity pulled the shattered fragments together. Over thousands of years the rock cooled, solidified, and found its shape. Not from stillness — but from the most spectacular collision our solar system had ever seen.</p>
+        <div class="s-stat rv d4">
+          <div class="stat-card">
+            <span class="stat-num" data-count="4.5" data-suffix="B">4.5B</span>
+            <span class="stat-lbl">Years Old</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" data-count="384" data-suffix="K">384K</span>
+            <span class="stat-lbl">km Away</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" data-count="27.3" data-suffix="">27.3</span>
+            <span class="stat-lbl">Day Orbit</span>
+          </div>
+        </div>
+      </div>
+      <div class="s-visual rv-r">
+        <div class="round-frame">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/800px-FullMoon2010.jpg" alt="Full moon photograph" loading="lazy">
+        </div>
+        <div class="deco-cross tl"></div>
+        <div class="deco-cross br"></div>
+        <div class="deco-line-h" style="width:80px;top:10%;right:-30px;"></div>
+        <div class="deco-line-v" style="height:80px;bottom:-20px;left:15%;"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="div-strip"></div>
+
+  <!-- ═══ MYTHOLOGY ═══ -->
+  <section id="mythology" data-s="2">
+    <div class="story-grid flip">
+      <div class="s-content">
+        <div class="ch-row rv">
+          <span class="ch-label">Chapter Two</span>
+          <span class="ch-tag">World Mythology</span>
+        </div>
+        <h2 class="s-title rv d1">She was given<br>a <em>thousand names.</em></h2>
+        <p class="s-body rv d2">Ancient peoples looked up and saw a goddess. The Greeks called her Selene, riding her silver chariot across the night sky. The Romans named her Luna. The Chinese told of Chang'e, who drank an elixir of immortality and floated to the moon forever.</p>
+        <p class="s-body rv d3">In Japan, Tsukuyomi was the moon god, banished to walk the night — which is why the sun and moon never share the same sky. Every culture, on every continent, looked up and saw something divine.</p>
+      </div>
+      <div class="s-visual rv-l">
+        <div class="photo-frame">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/800px-FullMoon2010.jpg" alt="Moon" loading="lazy" class="mythology-img">
+          <div class="deco-cross tl"></div>
+          <div class="deco-cross br"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ PULL QUOTE ═══ -->
+  <section class="quote-section" data-s="2">
+    <div class="quote-rule rv"></div>
+    <blockquote class="big-quote rv d1">
+      <span class="qm">"</span>The moon does not fight. It attacks no one. It keeps to its course, but by its very nature, it gently influences what is around it.
+    </blockquote>
+    <p class="q-attr rv d2">— Deng Ming-Dao</p>
+    <div class="quote-rule rv d3"></div>
+  </section>
+
+  <div class="div-strip"></div>
+
+  <!-- ═══ APOLLO ═══ -->
+  <section class="earth-section" id="apollo" data-s="3">
+    <div class="earth-bg" id="earthBg"></div>
+    <div class="earth-overlay"></div>
+    <div class="earth-content">
+      <div class="ch-row rv">
+        <span class="earth-label">Chapter Three</span>
+        <span class="ch-tag ch-tag--cold">July 20, 1969</span>
+      </div>
+      <h2 class="earth-title rv d1">We went to see<br>the <em>Moon</em> and found<br>the <em>Earth.</em></h2>
+      <p class="earth-body rv d2">Two human beings pressed their boots into lunar regolith and left footprints that will remain for a million years. There is no wind up there to erase them. No rain, no erosion — only silence and the slow passage of time.</p>
+      <blockquote class="earth-quote rv d3">Looking up, I saw Earth — a small blue marble, impossibly fragile, hanging alone in an infinite black. The universe was vast and cold. And there was home.</blockquote>
+    </div>
+  </section>
+
+  <div class="div-strip"></div>
+
+  <!-- ═══ FULL MOON SHOWCASE ═══ -->
+  <section class="full-moon-section" data-s="4">
+    <p class="fm-label rv-b">In Full Glory</p>
+    <div class="full-moon-img-wrap rv-s d1">
+      <img class="full-moon-real" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/800px-FullMoon2010.jpg" alt="Full moon in high detail" loading="lazy">
+      <div class="full-moon-glow-ring"></div>
+      <div class="full-moon-glow-ring-2"></div>
+    </div>
+    <h2 class="fm-title rv d2">Every crater tells<br>a <em>billion-year-old</em> story.</h2>
+    <p class="s-body rv d3 fm-body">The scars on her surface are the records of an ancient solar system in chaos. Each impact basin — Tycho, Copernicus, Mare Tranquillitatis — holds the memory of a collision from the deep past of time.</p>
+  </section>
+
+  <div class="div-strip"></div>
+
+  <!-- ═══ CLOSING ═══ -->
+  <section class="closing" id="forever" data-s="5">
+    <p class="closing-tag rv">Epilogue</p>
+    <div class="earth-small rv d1">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/800px-The_Earth_seen_from_Apollo_17.jpg" alt="Earth from Apollo 17" loading="lazy">
+    </div>
+    <h2 class="closing-hed rv d2">She<br>Remains.</h2>
+    <p class="closing-sub rv d3">Every night, without fail, she rises. She has watched empires crumble and forests grow from ash. She has illuminated every love letter ever written, every child born into darkness, every ship searching for home.</p>
+    <p class="closing-final rv d4">She will be there tonight.<br>Look up.</p>
+  </section>
+
+  <footer>
+    <div class="footer-moon"></div>
+    <p>Luna — A Celestial Story &nbsp;·&nbsp; Images courtesy of NASA &amp; Wikimedia Commons</p>
+  </footer>
+
+  <!-- Lenis must load before main.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lenis/1.1.14/lenis.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
