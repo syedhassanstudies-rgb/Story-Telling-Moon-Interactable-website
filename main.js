@@ -261,8 +261,13 @@ window.addEventListener('resize', () => {
 
 /* ─────────────────────────────────────────────────────────
    MOON PHASE CANVAS
-   Draws the astronomical terminator correctly each frame.
-   illuminated (0 = new moon, 1 = full moon)
+   illuminated: 0 = new moon (fully dark), 1 = full moon (fully lit)
+
+   Strategy:
+     1. Fill the entire circle dark (shadow)
+     2. Cut out the LIT region using destination-out
+        — lit is ALWAYS on the RIGHT side (waxing convention)
+     The photo underneath shows through wherever the canvas is transparent.
 ───────────────────────────────────────────────────────── */
 const pctx = DOM.phaseCvs.getContext('2d');
 let phaseCvsSize = 0;
@@ -275,60 +280,79 @@ function initPhaseCanvas() {
   phaseCvsSize = sz;
 }
 
-function drawMoonPhase(illuminated){
+function drawMoonPhase(illuminated) {
   const sz = phaseCvsSize || 360;
   const r  = Math.max(sz / 2 - 1, 1);
   const cx = sz / 2, cy = sz / 2;
 
   pctx.clearRect(0, 0, sz, sz);
 
-  if (illuminated >= .998) return;        // Full moon — no shadow needed
-  if (illuminated <= .002) {              // New moon — entire circle is dark
-    pctx.save();
-    pctx.beginPath(); pctx.arc(cx, cy, r, 0, Math.PI * 2);
-    pctx.fillStyle = 'rgba(2,2,10,.97)'; pctx.fill();
-    pctx.restore();
+  // Full moon — canvas fully transparent, photo shows through entirely
+  if (illuminated >= 0.999) return;
+
+  // New moon — canvas fully dark
+  if (illuminated <= 0.001) {
+    pctx.beginPath();
+    pctx.arc(cx, cy, r, 0, Math.PI * 2);
+    pctx.fillStyle = 'rgba(2,2,10,0.97)';
+    pctx.fill();
     return;
   }
 
   pctx.save();
-  // Clip all drawing to the moon circle
-  pctx.beginPath(); pctx.arc(cx, cy, r, 0, Math.PI * 2); pctx.clip();
 
-  pctx.fillStyle = 'rgba(2,2,10,.97)';
+  // ── Step 1: paint the entire moon circle dark ─────────────────────────────
   pctx.beginPath();
+  pctx.arc(cx, cy, r, 0, Math.PI * 2);
+  pctx.fillStyle = 'rgba(2,2,10,0.97)';
+  pctx.fill();
 
-  // ── Shadow is always on the LEFT side ──────────────────────────────────────
-  // Arc from top (-π/2) to bottom (π/2) going ANTICLOCKWISE (true) sweeps the
-  // LEFT semicircle.  This is always the dark/shadow side.
-  pctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, true);
-
-  // ── Terminator ellipse ──────────────────────────────────────────────────────
-  // ex = r·cos(illuminated·π)
-  //   illuminated=0   → ex= r  (terminator at right edge → new moon, full shadow)
-  //   illuminated=0.5 → ex= 0  (terminator is vertical → half moon)
-  //   illuminated=1   → ex=-r  (terminator at left edge → full moon, no shadow)
+  // ── Step 2: cut out the LIT region so the photo shows through ─────────────
+  // The lit region is the RIGHT side of the moon.
+  // Terminator ellipse x-radius:
+  //   illuminated=0   → ex= r  (terminator on right edge, almost no lit strip)
+  //   illuminated=0.5 → ex= 0  (terminator is vertical, right half lit)
+  //   illuminated=1   → ex=-r  (terminator on left edge, fully lit)
   const ex = r * Math.cos(illuminated * Math.PI);
 
+  pctx.globalCompositeOperation = 'destination-out';
+  pctx.beginPath();
+
   if (ex >= 0) {
-    // Waxing (0→0.5): shadow bulges left; terminator curves toward right.
-    // Ellipse going CLOCKWISE (false) sweeps the RIGHT side, closing the shadow shape.
-    pctx.ellipse(cx, cy, ex, r, 0, Math.PI / 2, -Math.PI / 2, false);
+    // ── Waxing crescent (0 < illuminated < 0.5) ────────────────────────────
+    // Lit = thin sliver on the right.
+    // Path traces: RIGHT semicircle outline, then the terminator curves BACK left.
+    //
+    // arc from top to bottom CLOCKWISE (false) = traces the right edge
+    pctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false);
+    // ellipse from bottom to top ANTICLOCKWISE (true) = curves back along left
+    // side of the terminator ellipse, closing the crescent
+    pctx.ellipse(cx, cy, ex, r, 0, Math.PI / 2, -Math.PI / 2, true);
+
   } else {
-    // Gibbous (0.5→1): only a crescent of shadow on the left.
-    // Ellipse going ANTICLOCKWISE (true) sweeps the LEFT side, eating into the shadow.
-    pctx.ellipse(cx, cy, -ex, r, 0, Math.PI / 2, -Math.PI / 2, true);
+    // ── Waxing gibbous (0.5 < illuminated < 1) ─────────────────────────────
+    // Lit = everything except a thin shadow crescent on the left.
+    // Path traces: RIGHT semicircle outline, then terminator bulges FURTHER right.
+    //
+    // arc from top to bottom CLOCKWISE (false) = traces the right edge
+    pctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false);
+    // ellipse from bottom to top CLOCKWISE (false) = curves rightward
+    // (ex is negative so we pass -ex as the positive radius)
+    pctx.ellipse(cx, cy, -ex, r, 0, Math.PI / 2, -Math.PI / 2, false);
   }
 
   pctx.closePath();
   pctx.fill();
 
-  // Soft radial vignette at the terminator boundary (avoids a hard visible edge)
-  const edgeGrad = pctx.createRadialGradient(cx, cy, r * .72, cx, cy, r * .99);
+  // ── Step 3: soft edge vignette at circle boundary ────────────────────────
+  pctx.globalCompositeOperation = 'source-over';
+  const edgeGrad = pctx.createRadialGradient(cx, cy, r * 0.75, cx, cy, r * 0.99);
   edgeGrad.addColorStop(0, 'rgba(2,2,10,0)');
-  edgeGrad.addColorStop(1, 'rgba(2,2,10,.14)');
+  edgeGrad.addColorStop(1, 'rgba(2,2,10,0.18)');
   pctx.fillStyle = edgeGrad;
-  pctx.fillRect(0, 0, sz, sz);
+  pctx.beginPath();
+  pctx.arc(cx, cy, r, 0, Math.PI * 2);
+  pctx.fill();
 
   pctx.restore();
 }
@@ -339,30 +363,30 @@ window.addEventListener('load', initPhaseCanvas);
 
 /* ─────────────────────────────────────────────────────────
    PHASE NAME LABEL
-   Hidden on hero (sp < 0.07). Only appears after scrolling.
 ───────────────────────────────────────────────────────── */
-const PHASE_NAMES = [
-  { max: .25, name: 'New Moon' },
-  { max: .50, name: 'Waxing Crescent' },
-  { max: .72, name: 'First Quarter' },
-  { max: .90, name: 'Waxing Gibbous' },
-  { max: 1.0, name: 'Full Moon' },
-];
 let lastPhaseName = '';
 
-function updatePhaseLabel(sp, illuminated) {
-  // Stay hidden while on the hero to avoid overlapping the subtitle
+function updatePhaseLabel(sp, illumination) {
+  // Hide on hero to avoid overlapping subtitle
   if (sp < .07) {
     DOM.phaseLabel.style.opacity = '0';
     lastPhaseName = '';
     return;
   }
-  const entry = PHASE_NAMES.find(p => illuminated <= p.max) || PHASE_NAMES[PHASE_NAMES.length - 1];
-  if (entry.name !== lastPhaseName) {
-    lastPhaseName = entry.name;
+
+  const waxing = sp <= 0.63;
+  let name;
+  if (illumination < 0.04)       name = 'New Moon';
+  else if (illumination < 0.47)  name = waxing ? 'Waxing Crescent' : 'Waning Crescent';
+  else if (illumination < 0.53)  name = waxing ? 'First Quarter'   : 'Last Quarter';
+  else if (illumination < 0.97)  name = waxing ? 'Waxing Gibbous'  : 'Waning Gibbous';
+  else                           name = 'Full Moon';
+
+  if (name !== lastPhaseName) {
+    lastPhaseName = name;
     DOM.phaseLabel.style.opacity = '0';
     setTimeout(() => {
-      DOM.phaseLabel.textContent = entry.name;
+      DOM.phaseLabel.textContent = name;
       DOM.phaseLabel.style.opacity = '1';
     }, 400);
   }
@@ -511,6 +535,13 @@ function updateNavDots() {
   const sp = getSP();
   const { scale, bright, y, blur } = interpPhases(sp);
 
+  // illumination: 0=new moon, 1=full moon, then back to 0
+  // Full moon is at sp=0.63 in the story arc
+  const FULL_AT = 0.63;
+  const illumination = sp <= FULL_AT
+    ? sp / FULL_AT                               // waxing:  0 → 1
+    : 1 - (sp - FULL_AT) / (1 - FULL_AT);       // waning:  1 → 0
+
   // Moon tilt (desktop only)
   if (!isTouch) {
     curTX += (tiltX - curTX) * .04;
@@ -526,17 +557,15 @@ function updateNavDots() {
   DOM.moonWrap.style.opacity =
     sp > .93 ? String(clamp(1 - (sp - .93) * 14, 0, 1)) : '1';
 
-  // Moon phase (canvas) — driven by brightness, not raw scroll
-  // bright goes 0.20→1.0→0.24 matching new-moon→full→waning across the story
-  if (phaseCvsSize > 0) drawMoonPhase(bright);
+  // Moon phase canvas — uses true illumination fraction (0→1→0)
+  if (phaseCvsSize > 0) drawMoonPhase(illumination);
 
   // Photo sepia warmth increases with scroll
   DOM.moonPhoto.style.filter = `sepia(${Math.round(sp * 22)}%) contrast(1.05)`;
 
-  // Phase label also tracks brightness so the name matches the visual phase
-  updatePhaseLabel(sp, bright);
+  updatePhaseLabel(sp, illumination);
   updateHero(sp);
-  if (!isMobile) updateFM();      // skip on mobile (no visible parallax benefit)
+  if (!isMobile) updateFM();
   updateEarth();
   updateAurora(sp);
   updateBg(sp);
